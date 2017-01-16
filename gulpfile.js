@@ -1,14 +1,21 @@
-var gulp = require('gulp');
-var sourcemaps = require('gulp-sourcemaps');
-var rollup = require('gulp-rollup');
-var sass = require('gulp-sass');
-var babel = require('rollup-plugin-babel');
+const gulp = require('gulp');
+const sourcemaps = require('gulp-sourcemaps');
+const rollup = require('gulp-rollup');
+const sass = require('gulp-sass');
+const babel = require('rollup-plugin-babel');
+
+const paths = {
+  scripts: 'src/scripts/**/*.js',
+  styles: 'src/styles/**/*.scss',
+  templates: 'src/templates/**/*.scss',
+  images: 'src/img/**/*'
+};
 
 gulp.task('rollup', function () {
   gulp.src(["./src/**/*.js"])
   .pipe(sourcemaps.init())
   .pipe(rollup({
-    entry: "./src/main.js",
+    entry: "src/scripts/main.js",
     plugins: [
       babel({
         exclude: 'node_modules/**',
@@ -17,17 +24,21 @@ gulp.task('rollup', function () {
     ],
   }))
   .pipe(sourcemaps.write())
-  .pipe(gulp.dest('./dist/'));
+  .pipe(gulp.dest('dist/'));
 });
-
-var sass = require('gulp-sass');
 
 gulp.task('sass', function () {
-  return gulp.src('./sass/**/*.scss')
+  return gulp.src('src/styles/**/*.scss')
     .pipe(sass().on('error', sass.logError))
-    .pipe(gulp.dest('./css'));
+    .pipe(gulp.dest('dist/css'));
 });
 
-gulp.task('sass:watch', function () {
-  gulp.watch('./sass/**/*.scss', ['sass']);
+gulp.task('watch', function() {
+  gulp.watch(paths.scripts, ['scripts']);
+  gulp.watch(paths.styles, ['sass']);
+  gulp.watch(paths.templates, ['templates']);
+  gulp.watch(paths.images, ['images']);
 });
+
+
+gulp.task('default', ['watch', 'sass', 'rollup']);
