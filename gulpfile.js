@@ -10,7 +10,7 @@ const rename = require('gulp-rename');
 const rollup = require('gulp-rollup');
 const sass = require('gulp-sass');
 const babel = require('rollup-plugin-babel');
-const browserSync = require('browser-sync');
+const browserSync = require('browser-sync').create();
 const argv = require('yargs').argv;
 
 const {paths} = require('./src/config.json');
@@ -64,13 +64,15 @@ gulp.task('js', () => {
     ],
   }))
   .pipe(sourcemaps.write())
-  .pipe(gulp.dest(paths.build));
+  .pipe(gulp.dest(paths.build))
+  .pipe(browserSync.stream());
 });
 
 gulp.task('sass', () => {
   return gulp.src(paths.styles)
     .pipe(sass().on('error', sass.logError))
-    .pipe(gulp.dest(paths.build + 'css'));
+    .pipe(gulp.dest(paths.build + 'css'))
+    .pipe(browserSync.stream());
 });
 
 gulp.task('templates', () => {
@@ -78,7 +80,18 @@ gulp.task('templates', () => {
     .pipe(nunjucksRender({
         path: ['src/templates']
       }))
-    .pipe(gulp.dest(paths.build));
+    .pipe(gulp.dest(paths.build))
+    .pipe(browserSync.stream());
+});
+
+gulp.task('browser-sync', function() {
+    browserSync.init({
+        server: {
+            baseDir: "./dist/pages/"
+        }
+    });
+
+    gulp.watch(paths.build).on('change', browserSync.reload);
 });
 
 gulp.task('watch', () => {
@@ -88,4 +101,4 @@ gulp.task('watch', () => {
   gulp.watch(paths.images, ['images']);
 });
 
-gulp.task('default', ['sass', 'js', 'templates']);
+gulp.task('default', ['sass', 'js', 'templates', 'watch', 'browser-sync']);
