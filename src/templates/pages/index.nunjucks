@@ -1,0 +1,8 @@
+<!-- index.nunjucks -->
+{% extends "layout.nunjucks" %}
+
+{% block sample %}
+<h1>This is a test page.</h1>
+
+{% include "partials/sample.nunjucks" %}
+{% endblock %}

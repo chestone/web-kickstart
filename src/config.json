@@ -1,0 +1,14 @@
+{
+  "page": {
+    "title": "Sample Title",
+    "description": "This is a sample description"
+  },
+  "paths": {
+    "apiHost": "localhost:3000",
+    "build": "dist/",
+    "scripts": "src/scripts/**/*.js",
+    "styles": "src/styles/**/*.scss",
+    "templates": "src/templates/**/*.+(html|nunjucks)",
+    "images": "src/img/**/*"
+  }
+}
