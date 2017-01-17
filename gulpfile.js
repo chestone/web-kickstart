@@ -7,9 +7,11 @@ const wrap = require('gulp-wrap');
 const concat = require('gulp-concat');
 const declare = require('gulp-declare');
 const rename = require('gulp-rename');
-const rollup = require('gulp-rollup');
 const sass = require('gulp-sass');
+const rollup = require('gulp-rollup');
 const babel = require('rollup-plugin-babel');
+const eslint = require('rollup-plugin-eslint');
+const uglify = require('rollup-plugin-uglify');
 const browserSync = require('browser-sync').create();
 const argv = require('yargs').argv;
 
@@ -61,10 +63,17 @@ gulp.task('js', () => {
         exclude: 'node_modules/**',
         presets: ['es2015-rollup'],
       }),
+      eslint({
+        exclude: [
+          'src/styles/**',
+          'src/templates/**',
+          'src/img/**'
+        ]
+      }),
     ],
   }))
   .pipe(sourcemaps.write())
-  .pipe(gulp.dest(paths.build))
+  .pipe(gulp.dest(paths.build + 'scripts'))
   .pipe(browserSync.stream());
 });
 
@@ -87,7 +96,8 @@ gulp.task('templates', () => {
 gulp.task('browser-sync', function() {
     browserSync.init({
         server: {
-            baseDir: "./dist/pages/"
+            baseDir: "dist",
+            index: "pages/index.html"
         }
     });
 

@@ -1,8 +1,4 @@
-import {fetch} from 'whatwg-fetch';
+import { version } from "package.json";
 
-console.log('main.js loaded');
-
-const foo = { bar: 'baz' };
-const {bar} = foo;
-
-console.log(bar);
+const message = `current version is ${version}`;
+export default () => console.log( message );
