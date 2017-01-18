@@ -1,5 +1,6 @@
 const del = require('del');
 const gulp = require('gulp');
+const file = require('gulp-file');
 const gutil = require('gulp-util');
 const sourcemaps = require('gulp-sourcemaps');
 const nunjucksRender = require('gulp-nunjucks-render');
@@ -12,22 +13,12 @@ const rollup = require('gulp-rollup');
 const babel = require('rollup-plugin-babel');
 const eslint = require('rollup-plugin-eslint');
 const uglify = require('rollup-plugin-uglify');
+const nodeResolve = require('rollup-plugin-node-resolve');
+const commonjs = require('rollup-plugin-commonjs');
 const browserSync = require('browser-sync').create();
 const argv = require('yargs').argv;
 
-const {paths} = require('./src/config.json');
-
-function serve() {
-  const options = {
-    server: {
-      baseDir: paths.build
-    },
-    open: false
-  };
-
-  browserSync(options);
-  gulp.watch(scripts);
-}
+const paths = require('./src/config.json').paths;
 
 function isProduction() {
   return argv.production;
@@ -54,28 +45,56 @@ function copyStatic() {
 gulp.task('clean', clean);
 
 gulp.task('js', () => {
-  return gulp.src([paths.scripts])
-  .pipe(sourcemaps.init())
+  return gulp.src(paths.scripts)
+    .pipe(rollup(
+      {
+        entry: 'src/scripts/main.js',
+        dest: 'dist/scripts/main.js',
+        format: 'iife',
+        sourceMap: 'inline',
+        plugins: [
+          resolve({
+            jsnext: true,
+            main: true,
+            browser: true,
+          }),
+          commonjs(),
+          eslint({
+            exclude: [
+              'src/styles/**',
+            ]
+          }),
+          babel({
+            exclude: 'node_modules/**',
+          }),
+          rollupIncludePath({paths: ['src/scripts']})
+        ],
+      }
+    ));
+});
+
+gulp.task('js', function () {
+  gulp.src(paths.scripts)
   .pipe(rollup({
-    entry: "src/scripts/main.js",
+    allowRealFiles: true,
+    entry: 'src/scripts/main.js',
+    sourceMap: 'inline',
+    format: 'umd',
     plugins: [
       babel({
         exclude: 'node_modules/**',
-        presets: ['es2015-rollup'],
+        presets: ['es2015-rollup']
       }),
-      eslint({
-        exclude: [
-          'src/styles/**',
-          'src/templates/**',
-          'src/img/**'
-        ]
+      nodeResolve({
+        jsnext: true,
+        main: true,
+        browser: true
       }),
+      commonjs()
     ],
   }))
-  .pipe(sourcemaps.write())
-  .pipe(gulp.dest(paths.build + 'scripts'))
-  .pipe(browserSync.stream());
-});
+  .pipe(gulp.dest(paths.build + 'scripts'));
+})
 
 gulp.task('sass', () => {
   return gulp.src(paths.styles)
@@ -94,14 +113,14 @@ gulp.task('templates', () => {
 });
 
 gulp.task('browser-sync', function() {
-    browserSync.init({
-        server: {
-            baseDir: "dist",
-            index: "pages/index.html"
-        }
-    });
+  browserSync.init({
+    server: {
+      baseDir: "dist",
+      index: "pages/index.html"
+    }
+  });
 
-    gulp.watch(paths.build).on('change', browserSync.reload);
+  gulp.watch(paths.build).on('change', browserSync.reload);
 });
 
 gulp.task('watch', () => {

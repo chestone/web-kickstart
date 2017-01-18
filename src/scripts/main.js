@@ -1,4 +1,8 @@
-import { version } from "package.json";
+// First we setup some polyfills to get things at a sane baseline
+import Promise from 'promise-polyfill';
 
-const message = `current version is ${version}`;
-export default () => console.log( message );
+if (!window.Promise) {
+  window.Promise = Promise;
+}
+
+import 'whatwg-fetch';
