@@ -8,6 +8,7 @@
     <title>{{title}}</title>
     <meta name="description" content={{description}}>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.css" rel="stylesheet" media="screen">
     <link href="css/main.css" rel="stylesheet" media="screen">
   </head>
   <body>
@@ -16,15 +17,8 @@
     <![endif]-->
 
     <!-- Add your site or application content here -->
-    {% block sample %} {% endblock %}
+    {% block content %} {% endblock %}
 
     <script src="scripts/main.js"></script>
-
-    <!-- Google Analytics: change UA-XXXXX-Y to be your site's ID. -->
-    <script>
-        window.ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;
-        ga('create','UA-XXXXX-Y','auto');ga('send','pageview')
-    </script>
-    <script src="https://www.google-analytics.com/analytics.js" async defer></script>
   </body>
 </html>

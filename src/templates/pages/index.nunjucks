@@ -1,8 +1,9 @@
 <!-- index.nunjucks -->
 {% extends "layout.nunjucks" %}
 
-{% block sample %}
-<h1>This is a test page.</h1>
+{% block content %}
+<div class="overlay js-overlay">
+  <div class="loader js-loader"></div>
+</div>
 
-{% include "partials/sample.nunjucks" %}
 {% endblock %}

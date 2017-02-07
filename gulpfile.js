@@ -1,4 +1,5 @@
 const del = require('del');
+const path = require('path');
 const gulp = require('gulp');
 const file = require('gulp-file');
 const gutil = require('gulp-util');
@@ -9,16 +10,13 @@ const concat = require('gulp-concat');
 const declare = require('gulp-declare');
 const rename = require('gulp-rename');
 const sass = require('gulp-sass');
-const rollup = require('gulp-rollup');
-const babel = require('rollup-plugin-babel');
-const eslint = require('rollup-plugin-eslint');
-const uglify = require('rollup-plugin-uglify');
-const nodeResolve = require('rollup-plugin-node-resolve');
-const commonjs = require('rollup-plugin-commonjs');
 const browserSync = require('browser-sync').create();
 const argv = require('yargs').argv;
+const webpackStream = require('webpack-stream');
+const webpack = require('webpack');
+const webpackConfig = require('./webpack.config.js');
 
-const paths = require('./src/config.json').paths;
+const paths = require('./config.json').paths;
 
 function isProduction() {
   return argv.production;
@@ -36,87 +34,51 @@ function clean() {
   return del([paths.build + '**/']);
 }
 
-function copyStatic() {
-  return gulp.src(paths.build + '/**/*')
-    .pipe(gulp.dest(paths.build));
-
-}
-
 gulp.task('clean', clean);
 
-gulp.task('js', () => {
-  return gulp.src(paths.scripts)
-    .pipe(rollup(
-      {
-        entry: 'src/scripts/main.js',
-        dest: 'dist/scripts/main.js',
-        format: 'iife',
-        sourceMap: 'inline',
-        plugins: [
-          resolve({
-            jsnext: true,
-            main: true,
-            browser: true,
-          }),
-          commonjs(),
-          eslint({
-            exclude: [
-              'src/styles/**',
-            ]
-          }),
-          babel({
-            exclude: 'node_modules/**',
-          }),
-          rollupIncludePath({paths: ['src/scripts']})
-        ],
-      }
-    ));
-});
-
 gulp.task('js', function () {
-  gulp.src(paths.scripts)
-  .pipe(rollup({
-    allowRealFiles: true,
-    entry: 'src/scripts/main.js',
-    sourceMap: 'inline',
-    format: 'umd',
-    plugins: [
-      babel({
-        exclude: 'node_modules/**',
-        presets: ['es2015-rollup']
-      }),
-      nodeResolve({
-        jsnext: true,
-        main: true,
-        browser: true
-      }),
-      commonjs()
-    ],
-  }))
-  .pipe(gulp.dest(paths.build + 'scripts'));
-})
+  return gulp.src('./src/scripts/main.js')
+    .pipe(sourcemaps.init())
+    .pipe(webpackStream(webpackConfig))
+    .pipe(sourcemaps.write(paths.build + 'scripts'))
+    .pipe(gulp.dest(paths.build + 'scripts'))
+    .pipe(browserSync.stream());
+});
 
 gulp.task('sass', () => {
   return gulp.src(paths.styles)
+    .pipe(sourcemaps.init())
     .pipe(sass().on('error', sass.logError))
+    .pipe(sourcemaps.write(paths.build + 'css'))
     .pipe(gulp.dest(paths.build + 'css'))
     .pipe(browserSync.stream());
 });
 
-gulp.task('templates', () => {
-  return gulp.src(paths.templates)
+gulp.task('render:templates', () => {
+  return gulp.src(paths.pages)
     .pipe(nunjucksRender({
-        path: ['src/templates']
+        path: ['src/templates/pages']
       }))
-    .pipe(gulp.dest(paths.build))
+    .pipe(gulp.dest(paths.build + 'templates/pages'))
     .pipe(browserSync.stream());
+});
+
+gulp.task('copy:images', () => {
+  return gulp.src(paths.images)
+    .pipe(gulp.dest(paths.build + 'images'));
+});
+
+gulp.task('copy:components', () => {
+  return gulp.src(paths.components)
+    .pipe(gulp.dest(paths.build + 'templates/components'));
 });
 
 gulp.task('browser-sync', function() {
   browserSync.init({
+    port: 3030,
     server: {
       baseDir: "dist",
-      index: "pages/index.html"
+      index: "templates/pages/index.html"
     }
   });
 
@@ -126,8 +88,9 @@ gulp.task('browser-sync', function() {
 gulp.task('watch', () => {
   gulp.watch(paths.scripts, ['js']);
   gulp.watch(paths.styles, ['sass']);
-  gulp.watch(paths.templates, ['templates']);
+  gulp.watch(paths.pages, ['render:templates']);
+  gulp.watch(paths.components, ['copy:components']);
   gulp.watch(paths.images, ['images']);
 });
 
-gulp.task('default', ['sass', 'js', 'templates', 'watch', 'browser-sync']);
+gulp.task('default', ['js', 'sass', 'copy:components', 'copy:images', 'render:templates', 'watch', 'browser-sync']);

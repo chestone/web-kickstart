@@ -1,5 +1,9 @@
+@import 'variables';
+@import 'components/loader';
+@import 'components/overlay';
+
 html {
   body {
-    background-color: #0000ff;
+    background-color: $bg-color;
   }
 }
