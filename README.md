@@ -5,4 +5,7 @@ This project is a jumping off point for most web projects you probably want to c
 having to start from scratch.
 
 ## Install
-`npm i`
+`npm i -D`
+
+## Running
+`gulp`
